@@ -14,26 +14,25 @@ import com.pedropathing.util.Timer;
 @TeleOp
 public class NatsTeleopBlue {
 
-    double crawlMode;          // define variables here
-
-
-
-
-
     private Follower follower;
     private Timer pathTimer;
 
+    //Define variables here
+    double crawlMode;
 
 
 
 
+
+
+
+    //Add cases here
     public enum PathState{
         STANDBY,
         FIELD_ORIENTATED_MANUAL_DRIVE_START,
         FIELD_ORIENTATED_MANUAL_DRIVE,
         ROBOT_ORIENTATED_MANUAL_DRIVE_START,
         ROBOT_ORIENTATED_MANUAL_DRIVE,
-        RETURN_TO_START,
         DRIVE_TO_BLUE_FINISH,
         FAR_SHOOT_POS,
         NEAR_SHOOT_POS,
@@ -43,6 +42,7 @@ public class NatsTeleopBlue {
 
     }
 
+    //Define PathStates here
     PathState drivetrainPathState;
     PathState crawlModePathState;
 
@@ -50,14 +50,14 @@ public class NatsTeleopBlue {
 
 
 
-
+    //Define Positions here
     private final Pose blueFinish = new Pose(39,33,Math.toRadians(90));
     private final Pose closeBlueLaunchPose = new Pose(49,98,Math.toRadians(45));
     private final Pose farBlueLaunchPose = new Pose(48.92957746478873,9.887323943661967,Math.toRadians(135));
     private final Pose blueGatePos = new Pose(11.579661016949157,62.67118644067798,Math.toRadians(150));
 
 
-
+    //Define PathChains here
     private PathChain driveToRedFinish;
     private PathChain driveToCloseLaunchPose;
     private PathChain driveToFarLaunchPose;
@@ -66,6 +66,8 @@ public class NatsTeleopBlue {
 
 
     public void buildPaths(){
+
+        //Build PathChains here
 
         driveToRedFinish = follower.pathBuilder()
                 .addPath(new BezierLine(follower.getPose(),blueFinish))
@@ -89,7 +91,7 @@ public class NatsTeleopBlue {
 
 
 
-
+        //Add switches here
 
         switch(drivetrainPathState){
 
@@ -114,7 +116,6 @@ public class NatsTeleopBlue {
 
             case DRIVE_TO_BLUE_FINISH:
                 follower.followPath(driveToRedFinish,true);
-                //TODO change depending on end lift
                 setDrivetrainPathState(PathState.STANDBY);
                 break;
             case FAR_SHOOT_POS:
@@ -184,13 +185,13 @@ public class NatsTeleopBlue {
 
 
 
-
+    //Add custom methods here
     public void setDriveMode() {
         if (gamepad1.right_trigger > 0.9) {
             setDrivetrainPathState(PathState.FIELD_ORIENTATED_MANUAL_DRIVE_START);
         }
         if (gamepad2.rightStickButtonWasPressed()) {
-            setDrivetrainPathState(PathState.ROBOT_ORIENTATED_MANUAL_DRIVE_START);               // custom methods here
+            setDrivetrainPathState(PathState.ROBOT_ORIENTATED_MANUAL_DRIVE_START);
         }
         if (gamepad1.rightBumperWasPressed()) {
             setDrivetrainPathState(PathState.FAR_SHOOT_POS);
@@ -223,9 +224,9 @@ public class NatsTeleopBlue {
 
 
 
-
+    //Set path states here
     public void setDrivetrainPathState(PathState newState){
-        drivetrainPathState = newState;                                        // set path states here
+        drivetrainPathState = newState;
         pathTimer.resetTimer();
     }public void setCrawlModePathState(PathState newState){
         drivetrainPathState = newState;
