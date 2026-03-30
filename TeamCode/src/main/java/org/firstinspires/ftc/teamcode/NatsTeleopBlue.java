@@ -65,7 +65,7 @@ public class NatsTeleopBlue extends OpMode {
 
 
     //Define PathChains here
-    private PathChain driveToRedFinish;
+    private PathChain driveToBlueFinish;
     private PathChain driveToCloseLaunchPose;
     private PathChain driveToFarLaunchPose;
     private PathChain driveToBlueGatePos;
@@ -76,7 +76,7 @@ public class NatsTeleopBlue extends OpMode {
 
         //Build PathChains here
 
-        driveToRedFinish = follower.pathBuilder()
+        driveToBlueFinish = follower.pathBuilder()
                 .addPath(new BezierLine(follower.getPose(),blueFinish))
                 .setLinearHeadingInterpolation(follower.getHeading(),blueFinish.getHeading())
                 .build();
@@ -122,7 +122,7 @@ public class NatsTeleopBlue extends OpMode {
                 break;
 
             case DRIVE_TO_BLUE_FINISH:
-                follower.followPath(driveToRedFinish,true);
+                follower.followPath(driveToBlueFinish,true);
                 setDrivetrainPathState(PathState.STANDBY);
                 break;
             case FAR_SHOOT_POS:
