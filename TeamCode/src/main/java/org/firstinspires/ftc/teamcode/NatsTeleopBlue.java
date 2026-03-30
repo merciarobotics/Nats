@@ -3,16 +3,21 @@ package org.firstinspires.ftc.teamcode;
 
 import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.gamepad1;
 import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.gamepad2;
+import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.pedropathing.util.Timer;
 
+import org.firstinspires.ftc.teamcode.mechanisms.TextFile;
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+
 @TeleOp
-public class NatsTeleopBlue {
+public class NatsTeleopBlue extends OpMode {
 
     private Follower follower;
     private Timer pathTimer;
@@ -28,6 +33,8 @@ public class NatsTeleopBlue {
 
     //Add cases here
     public enum PathState{
+
+        //Drivetrain Cases
         STANDBY,
         FIELD_ORIENTATED_MANUAL_DRIVE_START,
         FIELD_ORIENTATED_MANUAL_DRIVE,
@@ -51,10 +58,10 @@ public class NatsTeleopBlue {
 
 
     //Define Positions here
-    private final Pose blueFinish = new Pose(39,33,Math.toRadians(90));
-    private final Pose closeBlueLaunchPose = new Pose(49,98,Math.toRadians(45));
-    private final Pose farBlueLaunchPose = new Pose(48.92957746478873,9.887323943661967,Math.toRadians(135));
-    private final Pose blueGatePos = new Pose(11.579661016949157,62.67118644067798,Math.toRadians(150));
+    private final Pose blueFinish = new Pose(38,35,Math.toRadians(90));
+    private final Pose closeBlueLaunchPose = new Pose(49,98,Math.toRadians(135));
+    private final Pose farBlueLaunchPose = new Pose(57,9,Math.toRadians(110));
+    private final Pose blueGatePos = new Pose(10,59,Math.toRadians(150));
 
 
     //Define PathChains here
@@ -71,19 +78,19 @@ public class NatsTeleopBlue {
 
         driveToRedFinish = follower.pathBuilder()
                 .addPath(new BezierLine(follower.getPose(),blueFinish))
-                .setLinearHeadingInterpolation(follower.getPose().getHeading(),blueFinish.getHeading())
+                .setLinearHeadingInterpolation(follower.getHeading(),blueFinish.getHeading())
                 .build();
         driveToCloseLaunchPose = follower.pathBuilder()
                 .addPath(new BezierLine(follower.getPose(),closeBlueLaunchPose))
-                .setLinearHeadingInterpolation(follower.getPose().getHeading(),closeBlueLaunchPose.getHeading())
+                .setLinearHeadingInterpolation(follower.getHeading(),closeBlueLaunchPose.getHeading())
                 .build();
         driveToFarLaunchPose = follower.pathBuilder()
                 .addPath(new BezierLine(follower.getPose(),farBlueLaunchPose))
-                .setLinearHeadingInterpolation(follower.getPose().getHeading(),farBlueLaunchPose.getHeading())
+                .setLinearHeadingInterpolation(follower.getHeading(),farBlueLaunchPose.getHeading())
                 .build();
         driveToBlueGatePos = follower.pathBuilder()
                 .addPath(new BezierLine(follower.getPose(),blueGatePos))
-                .setLinearHeadingInterpolation(follower.getPose().getHeading(),blueGatePos.getHeading())
+                .setLinearHeadingInterpolation(follower.getHeading(),blueGatePos.getHeading())
                 .build();
     }
 
@@ -141,15 +148,6 @@ public class NatsTeleopBlue {
 
         }
 
-
-
-
-
-
-
-
-
-
         switch (crawlModePathState){
             case NORMAL_MODE:
                 crawlMode = 1;
@@ -205,9 +203,7 @@ public class NatsTeleopBlue {
         if (gamepad1.rightStickButtonWasPressed()) {
             setDrivetrainPathState(PathState.GATE_POS);
         }
-        if (gamepad1.rightBumperWasPressed()) {
-            setDrivetrainPathState(PathState.FAR_SHOOT_POS);
-        }
+
     }
 
 
@@ -229,7 +225,7 @@ public class NatsTeleopBlue {
         drivetrainPathState = newState;
         pathTimer.resetTimer();
     }public void setCrawlModePathState(PathState newState){
-        drivetrainPathState = newState;
+        crawlModePathState = newState;
     }
 
 
@@ -243,8 +239,23 @@ public class NatsTeleopBlue {
 
     public void init(){
         drivetrainPathState = PathState.FIELD_ORIENTATED_MANUAL_DRIVE_START;
+        crawlModePathState = PathState.NORMAL_MODE;
+        follower = Constants.createFollower(hardwareMap);
 
         pathTimer = new Timer();
+        double[] data = TextFile.loadAll();
+
+        if (data != null && data.length >= 8) {
+//            pos1            = (int) data[0];
+//            pos3            = (int) data[1];
+//            pos5            = (int) data[2];
+
+//            currentGreenPos = (int) data[6];
+//            motifGreenPos   = (int) data[7];
+
+            follower.setPose(new Pose(data[3], data[4], data[5]));
+            buildPaths();
+        }
 
     }
 
@@ -257,6 +268,8 @@ public class NatsTeleopBlue {
 
 
     public void start(){
+        setDrivetrainPathState(drivetrainPathState);
+        setCrawlModePathState(crawlModePathState);
 
     }
 
@@ -269,7 +282,11 @@ public class NatsTeleopBlue {
 
 
     public void loop(){
+        telemetry.addData("Pose",follower.getPose());
+        telemetry.addData("Drivetrain PathState:", drivetrainPathState);
+        telemetry.addLine("RACING STRIPES");
         follower.update();
+        statePathUpdate();
         setDriveMode();
 
     }
