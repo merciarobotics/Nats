@@ -77,19 +77,19 @@ public class NatsTeleopBlue extends OpMode {
         //Build PathChains here
 
         driveToBlueFinish = follower.pathBuilder()
-                .addPath(new BezierLine(follower.getPose(),blueFinish))
+                .addPath(new BezierLine(follower.getPose(),blueFinish.getPose()))
                 .setLinearHeadingInterpolation(follower.getHeading(),blueFinish.getHeading())
                 .build();
         driveToCloseLaunchPose = follower.pathBuilder()
-                .addPath(new BezierLine(follower.getPose(),closeBlueLaunchPose))
+                .addPath(new BezierLine(follower.getPose(),closeBlueLaunchPose.getPose()))
                 .setLinearHeadingInterpolation(follower.getHeading(),closeBlueLaunchPose.getHeading())
                 .build();
         driveToFarLaunchPose = follower.pathBuilder()
-                .addPath(new BezierLine(follower.getPose(),farBlueLaunchPose))
+                .addPath(new BezierLine(follower.getPose(),farBlueLaunchPose.getPose()))
                 .setLinearHeadingInterpolation(follower.getHeading(),farBlueLaunchPose.getHeading())
                 .build();
         driveToBlueGatePos = follower.pathBuilder()
-                .addPath(new BezierLine(follower.getPose(),blueGatePos))
+                .addPath(new BezierLine(follower.getPose(),blueGatePos.getPose()))
                 .setLinearHeadingInterpolation(follower.getHeading(),blueGatePos.getHeading())
                 .build();
     }
@@ -142,7 +142,7 @@ public class NatsTeleopBlue extends OpMode {
                 break;
 
             default:
-                drivetrainPathState = PathState.STANDBY;
+                setDrivetrainPathState(PathState.STANDBY);
                 break;
 
 
