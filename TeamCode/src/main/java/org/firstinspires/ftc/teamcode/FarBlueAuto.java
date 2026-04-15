@@ -8,6 +8,7 @@ import com.pedropathing.util.Timer;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
@@ -27,6 +28,8 @@ public class FarBlueAuto extends OpMode {
     NormalizedColorSensor colorSensor;
     private float gain = 9;
     boolean tagDetected = false;
+    public DcMotorEx intakeMotor;
+
 
 
 
@@ -46,10 +49,15 @@ public class FarBlueAuto extends OpMode {
         SHOOT_TO_SECOND_INTAKE,
         SECOND_INTAKE,
         SECOND_INTAKE_TO_SHOOT,
-        SHOOT_TWO
+        SHOOT_TWO,
+        INTAKE_FORWARD,
+        INTAKE_STATIONARY,
+        INTAKE_REVERSE
+
     }
 
     PathState autoPathState;
+    PathState intakePathState;
 
     private final Pose startPose = new Pose(57,9,Math.toRadians(90));
     private final Pose farBlueLaunchPose = new Pose(57,9,Math.toRadians(110));
@@ -68,6 +76,23 @@ public class FarBlueAuto extends OpMode {
     private PathChain farLaunchPoseToSecondIntake;
     private PathChain secondIntake;
     private PathChain secondIntakeToFarLaunchPose;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -208,10 +233,34 @@ public class FarBlueAuto extends OpMode {
         }
 
 
+
+
+
+        switch (intakePathState){
+            case INTAKE_FORWARD:
+                intakeMotor.setVelocity(900);
+                break;
+
+            case INTAKE_STATIONARY:
+                intakeMotor.setVelocity(0);
+                break;
+
+            case INTAKE_REVERSE:
+                intakeMotor.setVelocity(-900);
+                break;
+
+            default:
+                setIntakePathState(PathState.INTAKE_STATIONARY);
+                break;
+
+        }
     }
+
     public void setAutoPathState(PathState newState){
         autoPathState = newState;
         pathTimer.resetTimer();
+    }public void setIntakePathState(PathState newState) {
+        intakePathState = newState;
     }
 
     @Override
