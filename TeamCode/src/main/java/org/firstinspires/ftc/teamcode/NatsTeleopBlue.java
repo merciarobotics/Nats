@@ -7,6 +7,7 @@ import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.har
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
+import com.pedropathing.geometry.BezierPoint;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -81,6 +82,7 @@ public class NatsTeleopBlue extends OpMode {
     private final Pose closeBlueLaunchPose = new Pose(49,98,Math.toRadians(135));
     private final Pose farBlueLaunchPose = new Pose(57,9,Math.toRadians(110));
     private final Pose blueGatePos = new Pose(10,59,Math.toRadians(150));
+    private final Pose blueGoal = new Pose(follower.getPose().getX(),follower.getPose().getY(),getTargetHeading());
 
 
     //Define PathChains here
@@ -88,6 +90,27 @@ public class NatsTeleopBlue extends OpMode {
     private PathChain driveToCloseLaunchPose;
     private PathChain driveToFarLaunchPose;
     private PathChain driveToBlueGatePos;
+    private PathChain lockOnGoal;
+
+
+
+
+
+
+
+
+
+
+    public double getTargetHeading(){
+        double changeY = 138 - follower.getPose().getY();      // TODO for red
+        double changeX = follower.getPose().getX();
+
+        return Math.PI + Math.atan(changeY/changeX);
+    }
+
+
+
+
 
 
 
@@ -110,6 +133,10 @@ public class NatsTeleopBlue extends OpMode {
         driveToBlueGatePos = follower.pathBuilder()
                 .addPath(new BezierLine(follower.getPose(),blueGatePos.getPose()))
                 .setLinearHeadingInterpolation(follower.getHeading(),blueGatePos.getHeading())
+                .build();
+        lockOnGoal = follower.pathBuilder()
+                .addPath(new BezierLine(follower.getPose(),blueGoal.getPose()))
+                .setLinearHeadingInterpolation(follower.getHeading(),blueGoal.getHeading())
                 .build();
     }
 

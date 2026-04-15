@@ -102,37 +102,37 @@ public class FarBlueAuto extends OpMode {
         //Build PathChains here
 
         startPoseToFarLaunchPose = follower.pathBuilder()
-                .addPath(new BezierLine(startPose,farBlueLaunchPose))
+                .addPath(new BezierLine(startPose.getPose(),farBlueLaunchPose.getPose()))
                 .setLinearHeadingInterpolation(startPose.getHeading(),farBlueLaunchPose.getHeading())
                 .build();
 
         farLaunchPoseToFirstIntake = follower.pathBuilder()
-                .addPath(new BezierLine(farBlueLaunchPose,firstIntakePose1))
+                .addPath(new BezierLine(farBlueLaunchPose.getPose(),firstIntakePose1.getPose()))
                 .setLinearHeadingInterpolation(farBlueLaunchPose.getHeading(),firstIntakePose1.getHeading())
                 .build();
 
         firstIntake = follower.pathBuilder()
-                .addPath(new BezierLine(firstIntakePose1,firstIntakePose2))
+                .addPath(new BezierLine(firstIntakePose1.getPose(),firstIntakePose2.getPose()))
                 .setLinearHeadingInterpolation(firstIntakePose1.getHeading(),firstIntakePose2.getHeading())
                 .build();
 
         firstIntakeToFarLaunchPose = follower.pathBuilder()
-                .addPath(new BezierLine(firstIntakePose2,farBlueLaunchPose))
+                .addPath(new BezierLine(firstIntakePose2.getPose(),farBlueLaunchPose.getPose()))
                 .setLinearHeadingInterpolation(firstIntakePose2.getHeading(),farBlueLaunchPose.getHeading())
                 .build();
 
         farLaunchPoseToSecondIntake = follower.pathBuilder()
-                .addPath(new BezierLine(farBlueLaunchPose,secondIntakePose1))
+                .addPath(new BezierLine(farBlueLaunchPose.getPose(),secondIntakePose1.getPose()))
                 .setLinearHeadingInterpolation(farBlueLaunchPose.getHeading(),secondIntakePose1.getHeading())
                 .build();
 
         secondIntake = follower.pathBuilder()
-                .addPath(new BezierLine(secondIntakePose1,secondIntakePose2))
+                .addPath(new BezierLine(secondIntakePose1.getPose(),secondIntakePose2.getPose()))
                 .setLinearHeadingInterpolation(secondIntakePose1.getHeading(),secondIntakePose2.getHeading())
                 .build();
 
         secondIntakeToFarLaunchPose = follower.pathBuilder()
-                .addPath(new BezierLine(secondIntakePose2,farBlueLaunchPose))
+                .addPath(new BezierLine(secondIntakePose2.getPose(),farBlueLaunchPose.getPose()))
                 .setLinearHeadingInterpolation(secondIntakePose2.getHeading(),farBlueLaunchPose.getHeading())
                 .build();
 
