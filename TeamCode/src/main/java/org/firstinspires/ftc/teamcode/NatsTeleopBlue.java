@@ -29,6 +29,9 @@ public class NatsTeleopBlue extends OpMode {
     //Define variables here
     double crawlMode;
     private CRServo intakeServo;
+    private CRServo intakeServo2;
+    private CRServo intakeServo3;
+
     private CRServo turretYawServo;
     private Servo turretPitchServo;
     double pitch;
@@ -238,39 +241,17 @@ public class NatsTeleopBlue extends OpMode {
 
 
 
-//        switch (intakePathState){
-//            case INTAKE_FORWARD:
-//                setIntakeServoPower(1);
-//                break;
-//
-//            case INTAKE_STATIONARY:
-//                setIntakeServoPower(0);
-//                break;
-//
-//            case INTAKE_REVERSE:
-//                setIntakeServoPower(-1);
-//                break;
-//
-//            default:
-//                setIntakePathState(PathState.INTAKE_STATIONARY);
-//                break;
-//
-//        }
-
-
-
-
         switch (intakePathState){
             case INTAKE_FORWARD:
-                intakeMotor.setVelocity(900);
+                setIntakeServoPower(1);
                 break;
 
             case INTAKE_STATIONARY:
-                intakeMotor.setVelocity(0);
+                setIntakeServoPower(0);
                 break;
 
             case INTAKE_REVERSE:
-                intakeMotor.setVelocity(-900);
+                setIntakeServoPower(-1);
                 break;
 
             default:
@@ -278,6 +259,28 @@ public class NatsTeleopBlue extends OpMode {
                 break;
 
         }
+
+
+
+
+//        switch (intakePathState){
+//            case INTAKE_FORWARD:
+//                intakeMotor.setVelocity(900);
+//                break;
+//
+//            case INTAKE_STATIONARY:
+//                intakeMotor.setVelocity(0);
+//                break;
+//
+//            case INTAKE_REVERSE:
+//                intakeMotor.setVelocity(-900);
+//                break;
+//
+//            default:
+//                setIntakePathState(PathState.INTAKE_STATIONARY);
+//                break;
+//
+//        }
 
 
 
