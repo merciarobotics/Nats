@@ -285,9 +285,6 @@ public class FarBlueAuto extends OpMode {
         imu.initialize(new IMU.Parameters(RevOrientation));
 
 
-        colorSensor = hardwareMap.get(NormalizedColorSensor.class, "sensor_color");
-        colorSensor.setGain(gain);
-
         aprilTagWebcam.init(hardwareMap, telemetry);
         follower = Constants.createFollower(hardwareMap);
         follower.setPose(startPose);

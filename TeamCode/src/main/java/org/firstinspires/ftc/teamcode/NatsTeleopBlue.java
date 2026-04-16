@@ -10,11 +10,16 @@ import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.BezierPoint;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.mechanisms.TextFile;
@@ -25,17 +30,20 @@ public class NatsTeleopBlue extends OpMode {
 
     private Follower follower;
     private Timer pathTimer;
+    private IMU imu;
 
     //Define variables here
     double crawlMode;
+    double pitch;
+
+    //Define servos and motors here
     private CRServo intakeServo;
     private CRServo intakeServo2;
     private CRServo intakeServo3;
-
-    private CRServo turretYawServo;
     private Servo turretPitchServo;
-    double pitch;
     public DcMotorEx intakeMotor;
+    public DcMotorEx flywheelMotor1;
+    public DcMotorEx flywheelMotor2;
 
 
 
@@ -290,20 +298,20 @@ public class NatsTeleopBlue extends OpMode {
 
 
 
-        switch (intakeUptakePathState){
-            case INTAKE:
-                setIntakePathState(PathState.INTAKE_FORWARD);
-                break;
-
-            case UPTAKE:
-
-                break;
-
-
-            case STANDBY:
-                setIntakePathState(PathState.INTAKE_STATIONARY);
-                break;
-        }
+//        switch (intakeUptakePathState){
+//            case INTAKE:
+//                setIntakePathState(PathState.INTAKE_FORWARD);
+//                break;
+//
+//            case UPTAKE:
+//
+//                break;
+//
+//
+//            case STANDBY:
+//                setIntakePathState(PathState.INTAKE_STATIONARY);
+//                break;
+//        }
 
 
 
@@ -351,6 +359,28 @@ public class NatsTeleopBlue extends OpMode {
         }
 
     }
+    public void setIntakeMode(){
+        if (gamepad2.dpadUpWasReleased()){
+            setIntakePathState(PathState.INTAKE_FORWARD);
+        }if (gamepad2.dpadLeftWasReleased()){
+            setIntakePathState(PathState.INTAKE_STATIONARY);
+        }if (gamepad2.dpadDownWasReleased()){
+            setIntakePathState(PathState.INTAKE_REVERSE);
+        }
+    }
+
+    public void setIntakeServoPower(double power){
+        intakeServo.setPower(power);
+        intakeServo2.setPower(power);
+        intakeServo3.setPower(power);
+
+    }public void autoPitch(){
+        setTurretPitchServoPosition(0.00000159852*Math.pow(getDistance(),3)-0.000458069*Math.pow(getDistance(),2)+0.0318736*getDistance()+0.122825);
+    }public void setTurretPitchServoPosition(double position){
+        turretPitchServo.setPosition(position);
+    }public double getDistance(){
+        return follower.getPose().distanceFrom(new Pose(6,144)) + 3.5;
+    }
 
 
 
@@ -377,22 +407,10 @@ public class NatsTeleopBlue extends OpMode {
     }public void setIntakePathState(PathState newState){
         intakePathState = newState;
     }public void setTurretPitchPathState(PathState newState){
+
         turretPitchState = newState;
     }
 
-
-
-
-    public void setIntakeServoPower(double power){
-        intakeServo.setPower(power);
-
-    }public void autoPitch(){
-        setTurretPitchServoPosition(0.00000159852*Math.pow(getDistance(),3)-0.000458069*Math.pow(getDistance(),2)+0.0318736*getDistance()+0.122825);
-    }public void setTurretPitchServoPosition(double position){
-        turretPitchServo.setPosition(position);
-    }public double getDistance(){
-        return follower.getPose().distanceFrom(new Pose(6,144)) + 3.5;
-    }
 
 
 
@@ -401,24 +419,58 @@ public class NatsTeleopBlue extends OpMode {
 
 
     public void init(){
+        follower = Constants.createFollower(hardwareMap);
+        follower.setPose(new Pose(0,0,0));
+        buildPaths();
         drivetrainPathState = PathState.FIELD_ORIENTATED_MANUAL_DRIVE_START;
         crawlModePathState = PathState.NORMAL_MODE;
-        follower = Constants.createFollower(hardwareMap);
+        intakePathState = PathState.INTAKE_STATIONARY;
+
+
+        //Add init mechanisms here
+
+        imu = hardwareMap.get(IMU.class, "imu");
+
+        RevHubOrientationOnRobot RevOrientation = new RevHubOrientationOnRobot(
+                RevHubOrientationOnRobot.LogoFacingDirection.BACKWARD,
+                RevHubOrientationOnRobot.UsbFacingDirection.RIGHT);
+        imu.initialize(new IMU.Parameters(RevOrientation));
+
+        intakeServo = hardwareMap.get(CRServo.class, "intakeServo");
+        intakeServo2 = hardwareMap.get(CRServo.class, "intakeServo2");
+        intakeServo3 = hardwareMap.get(CRServo.class, "intakeServo3");
+        turretPitchServo = hardwareMap.get(Servo.class, "turretPitchServo");
+
+        flywheelMotor1 = hardwareMap.get(DcMotorEx.class, "flywheelMotor1");
+        flywheelMotor1.setDirection(DcMotorSimple.Direction.REVERSE);
+        flywheelMotor1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        flywheelMotor2 = hardwareMap.get(DcMotorEx.class, "flywheelMotor2");
+        flywheelMotor2.setDirection(DcMotorSimple.Direction.FORWARD);
+        flywheelMotor2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        PIDFCoefficients pidfCoefficients = new PIDFCoefficients(32,0,0,0.92);
+        flywheelMotor1.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER,pidfCoefficients);
+        flywheelMotor2.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER,pidfCoefficients);
+
 
         pathTimer = new Timer();
         double[] data = TextFile.loadAll();
 
-        if (data != null && data.length >= 8) {
-//            pos1            = (int) data[0];
-//            pos3            = (int) data[1];
-//            pos5            = (int) data[2];
+//        if (data != null && data.length >= 8) {
+////            pos1            = (int) data[0];
+////            pos3            = (int) data[1];
+////            pos5            = (int) data[2];
+//
+////            currentGreenPos = (int) data[6];
+////            motifGreenPos   = (int) data[7];
+//
+//            follower.setPose(new Pose(data[3], data[4], data[5]));
+//
+//        }else {
+//            follower.setPose(new Pose(0,0,0));
+//        }
 
-//            currentGreenPos = (int) data[6];
-//            motifGreenPos   = (int) data[7];
-
-            follower.setPose(new Pose(data[3], data[4], data[5]));
-            buildPaths();
-        }
 
     }
 
@@ -433,6 +485,7 @@ public class NatsTeleopBlue extends OpMode {
     public void start(){
         setDrivetrainPathState(drivetrainPathState);
         setCrawlModePathState(crawlModePathState);
+        setIntakePathState(intakePathState);
 
     }
 

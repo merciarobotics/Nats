@@ -99,9 +99,6 @@ public class FarBlueInitAuto extends OpMode {
         imu.initialize(new IMU.Parameters(RevOrientation));
 
 
-        colorSensor = hardwareMap.get(NormalizedColorSensor.class, "sensor_color");
-        colorSensor.setGain(gain);
-
         aprilTagWebcam.init(hardwareMap, telemetry);
         follower = Constants.createFollower(hardwareMap);
         follower.setPose(startPose);
@@ -120,8 +117,6 @@ public class FarBlueInitAuto extends OpMode {
     public void loop() {
         statePathUpdate();
         follower.update();
-        detectedColor = getDetectedColor(telemetry);
-        telemetry.addData("Color Detected",detectedColor);
 
         text.saveAll(0,0,0,
         follower.getPose().getX(),  follower.getPose().getY(),  follower.getPose().getHeading(), 1,0);
