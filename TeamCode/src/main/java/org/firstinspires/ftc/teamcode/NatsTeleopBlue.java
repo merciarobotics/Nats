@@ -37,13 +37,12 @@ public class NatsTeleopBlue extends OpMode {
     double pitch;
 
     //Define servos and motors here
-    private CRServo intakeServo;
-    private CRServo intakeServo2;
-    private CRServo intakeServo3;
+
     private Servo turretPitchServo;
     public DcMotorEx intakeMotor;
     public DcMotorEx flywheelMotor1;
     public DcMotorEx flywheelMotor2;
+    private Servo gateServo;
 
 
 
@@ -80,7 +79,7 @@ public class NatsTeleopBlue extends OpMode {
     //Define PathStates here
     PathState drivetrainPathState;
     PathState crawlModePathState;
-    PathState intakeUptakePathState;
+    PathState flywheelPathstate;
     PathState intakePathState;
     PathState turretPitchState;
 
@@ -93,7 +92,7 @@ public class NatsTeleopBlue extends OpMode {
     private final Pose closeBlueLaunchPose = new Pose(49,98,Math.toRadians(135));
     private final Pose farBlueLaunchPose = new Pose(57,9,Math.toRadians(110));
     private final Pose blueGatePos = new Pose(10,59,Math.toRadians(150));
-    private final Pose blueGoal = new Pose(follower.getPose().getX(),follower.getPose().getY(),getTargetHeading());
+//
 
 
     //Define PathChains here
@@ -117,6 +116,11 @@ public class NatsTeleopBlue extends OpMode {
         double changeX = follower.getPose().getX();
 
         return Math.PI + Math.atan(changeY/changeX);
+    }
+
+
+    public void setUpTakeServoDirection1(double direction){
+        gateServo.setPosition(direction);
     }
 
 
@@ -146,8 +150,8 @@ public class NatsTeleopBlue extends OpMode {
                 .setLinearHeadingInterpolation(follower.getHeading(),blueGatePos.getHeading())
                 .build();
         lockOnGoal = follower.pathBuilder()
-                .addPath(new BezierLine(follower.getPose(),blueGoal.getPose()))
-                .setLinearHeadingInterpolation(follower.getHeading(),blueGoal.getHeading())
+                .addPath(new BezierLine(follower.getPose(),follower.getPose()))
+                .setLinearHeadingInterpolation(follower.getHeading(),getTargetHeading())
                 .build();
     }
 
@@ -249,17 +253,21 @@ public class NatsTeleopBlue extends OpMode {
 
 
 
+
+
+
+
         switch (intakePathState){
             case INTAKE_FORWARD:
-                setIntakeServoPower(1);
+                intakeMotor.setVelocity(900);
                 break;
 
             case INTAKE_STATIONARY:
-                setIntakeServoPower(0);
+                intakeMotor.setVelocity(0);
                 break;
 
             case INTAKE_REVERSE:
-                setIntakeServoPower(-1);
+                intakeMotor.setVelocity(-900);
                 break;
 
             default:
@@ -271,47 +279,18 @@ public class NatsTeleopBlue extends OpMode {
 
 
 
-//        switch (intakePathState){
-//            case INTAKE_FORWARD:
-//                intakeMotor.setVelocity(900);
-//                break;
-//
-//            case INTAKE_STATIONARY:
-//                intakeMotor.setVelocity(0);
-//                break;
-//
-//            case INTAKE_REVERSE:
-//                intakeMotor.setVelocity(-900);
-//                break;
-//
-//            default:
-//                setIntakePathState(PathState.INTAKE_STATIONARY);
-//                break;
-//
-//        }
+        switch (flywheelPathstate){
+
+
+
+
+        }
 
 
 
 
 
 
-
-
-
-//        switch (intakeUptakePathState){
-//            case INTAKE:
-//                setIntakePathState(PathState.INTAKE_FORWARD);
-//                break;
-//
-//            case UPTAKE:
-//
-//                break;
-//
-//
-//            case STANDBY:
-//                setIntakePathState(PathState.INTAKE_STATIONARY);
-//                break;
-//        }
 
 
 
@@ -369,12 +348,13 @@ public class NatsTeleopBlue extends OpMode {
         }
     }
 
-    public void setIntakeServoPower(double power){
-        intakeServo.setPower(power);
-        intakeServo2.setPower(power);
-        intakeServo3.setPower(power);
-
-    }public void autoPitch(){
+//    public void setIntakeServoPower(double power){
+//        intakeServo.setPower(power);
+//        intakeServo2.setPower(power);
+//        intakeServo3.setPower(power);
+//
+//    }
+    public void autoPitch(){
         setTurretPitchServoPosition(0.00000159852*Math.pow(getDistance(),3)-0.000458069*Math.pow(getDistance(),2)+0.0318736*getDistance()+0.122825);
     }public void setTurretPitchServoPosition(double position){
         turretPitchServo.setPosition(position);
@@ -402,12 +382,11 @@ public class NatsTeleopBlue extends OpMode {
         pathTimer.resetTimer();
     }public void setCrawlModePathState(PathState newState){
         crawlModePathState = newState;
-    }public void setIntakeUptakePathState(PathState newState){
-        intakeUptakePathState = newState;
+    }public void setFlywheelPathstate(PathState newState){
+        flywheelPathstate = newState;
     }public void setIntakePathState(PathState newState){
         intakePathState = newState;
     }public void setTurretPitchPathState(PathState newState){
-
         turretPitchState = newState;
     }
 
@@ -420,11 +399,13 @@ public class NatsTeleopBlue extends OpMode {
 
     public void init(){
         follower = Constants.createFollower(hardwareMap);
-        follower.setPose(new Pose(0,0,0));
+        follower.setStartingPose(farBlueLaunchPose);
+        follower.update();
         buildPaths();
         drivetrainPathState = PathState.FIELD_ORIENTATED_MANUAL_DRIVE_START;
         crawlModePathState = PathState.NORMAL_MODE;
         intakePathState = PathState.INTAKE_STATIONARY;
+        turretPitchState = PathState.TURRET_PITCH_AUTO;
 
 
         //Add init mechanisms here
@@ -436,9 +417,7 @@ public class NatsTeleopBlue extends OpMode {
                 RevHubOrientationOnRobot.UsbFacingDirection.RIGHT);
         imu.initialize(new IMU.Parameters(RevOrientation));
 
-        intakeServo = hardwareMap.get(CRServo.class, "intakeServo");
-        intakeServo2 = hardwareMap.get(CRServo.class, "intakeServo2");
-        intakeServo3 = hardwareMap.get(CRServo.class, "intakeServo3");
+        gateServo = hardwareMap.get(Servo.class, "gateServo");
         turretPitchServo = hardwareMap.get(Servo.class, "turretPitchServo");
 
         flywheelMotor1 = hardwareMap.get(DcMotorEx.class, "flywheelMotor1");
@@ -486,6 +465,7 @@ public class NatsTeleopBlue extends OpMode {
         setDrivetrainPathState(drivetrainPathState);
         setCrawlModePathState(crawlModePathState);
         setIntakePathState(intakePathState);
+        setTurretPitchPathState(turretPitchState);
 
     }
 
@@ -503,6 +483,7 @@ public class NatsTeleopBlue extends OpMode {
         telemetry.addLine("RACING STRIPES");
         follower.update();
         statePathUpdate();
+        setIntakeMode();
         setDriveMode();
 
     }

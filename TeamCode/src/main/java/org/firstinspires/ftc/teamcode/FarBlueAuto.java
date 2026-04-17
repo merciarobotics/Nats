@@ -12,6 +12,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.mechanisms.AprilTagWebcam;
@@ -29,6 +30,7 @@ public class FarBlueAuto extends OpMode {
     private float gain = 9;
     boolean tagDetected = false;
     public DcMotorEx intakeMotor;
+
 
 
 
@@ -52,12 +54,16 @@ public class FarBlueAuto extends OpMode {
         SHOOT_TWO,
         INTAKE_FORWARD,
         INTAKE_STATIONARY,
-        INTAKE_REVERSE
+        INTAKE_REVERSE,
+        INTAKE,
+        UPTAKE,
+        STANDBY
 
     }
 
     PathState autoPathState;
     PathState intakePathState;
+    PathState intakeUptakePathState;
 
     private final Pose startPose = new Pose(57,9,Math.toRadians(90));
     private final Pose farBlueLaunchPose = new Pose(57,9,Math.toRadians(110));
@@ -236,6 +242,10 @@ public class FarBlueAuto extends OpMode {
 
 
 
+
+
+
+
         switch (intakePathState){
             case INTAKE_FORWARD:
                 intakeMotor.setVelocity(900);
@@ -253,6 +263,32 @@ public class FarBlueAuto extends OpMode {
                 setIntakePathState(PathState.INTAKE_STATIONARY);
                 break;
 
+        }
+
+
+
+
+
+
+
+
+
+
+
+        switch (intakeUptakePathState){
+            case INTAKE:
+                setIntakePathState(PathState.INTAKE_FORWARD);
+                break;
+
+            case UPTAKE:
+
+
+                break;
+
+
+            case STANDBY:
+                setIntakePathState(PathState.INTAKE_STATIONARY);
+                break;
         }
     }
 
