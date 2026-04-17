@@ -72,7 +72,10 @@ public class NatsTeleopBlue extends OpMode {
         INTAKE,
         UPTAKE,
         TURRET_PITCH_AUTO,
-        TURRET_PITCH_MANUAL
+        TURRET_PITCH_MANUAL,
+        FLYWHEEL_MANUAL,
+        FLYWHEEL_OFF,
+        FLYWHEEL_AUTO
 
     }
 
@@ -123,6 +126,13 @@ public class NatsTeleopBlue extends OpMode {
         gateServo.setPosition(direction);
     }
 
+
+    public void setFlywheelMotorPower(double curTargetVelocity){
+        flywheelMotor1.setVelocity(curTargetVelocity);
+        flywheelMotor2.setVelocity(curTargetVelocity);
+
+        curVelocity = flywheelMotor1.getVelocity();
+    }
 
 
 
@@ -284,6 +294,28 @@ public class NatsTeleopBlue extends OpMode {
 
 
 
+
+            case FLYWHEEL_MANUAL:
+                setFlywheelMotorPower(rpm);
+
+                break;
+
+            case FLYWHEEL_OFF:
+                setFlywheelMotorPower(0.0);
+                break;
+
+
+            case FLYWHEEL_AUTO:
+                autoVelocity();
+                break;
+
+            default:
+                setFlywheelPathState(FLYWHEEL_OFF);
+                break;
+
+
+
+
         }
 
 
@@ -431,6 +463,8 @@ public class NatsTeleopBlue extends OpMode {
         PIDFCoefficients pidfCoefficients = new PIDFCoefficients(32,0,0,0.92);
         flywheelMotor1.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER,pidfCoefficients);
         flywheelMotor2.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER,pidfCoefficients);
+
+        intakeMotor = hardwareMap.get(DcMotorEx.class, "intakeMotor");
 
 
         pathTimer = new Timer();
