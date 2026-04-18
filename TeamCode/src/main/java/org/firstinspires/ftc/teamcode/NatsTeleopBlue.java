@@ -28,14 +28,17 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 @TeleOp
 public class NatsTeleopBlue extends OpMode {
 
+    //Define miscellaneous here
     private Follower follower;
-    private Timer pathTimer;
+    private Timer pathTimer,endLiftTimer;
     private IMU imu;
 
     //Define variables here
     double crawlMode;
     double pitch;
     int rpm = 1150;
+    boolean endgameLiftStart = true;
+
 
     //Define motors and servos here
 
@@ -74,15 +77,18 @@ public class NatsTeleopBlue extends OpMode {
         INTAKE_FORWARD,
         INTAKE_STATIONARY,
         INTAKE_REVERSE,
-        INTAKE,
-        UPTAKE,
         TURRET_PITCH_AUTO,
         TURRET_PITCH_MANUAL,
         FLYWHEEL_MANUAL,
         FLYWHEEL_OFF,
         FLYWHEEL_AUTO,
-        GATE_SHOOT,
-        GATE_CLOSED
+        GATE_OPEN,
+        GATE_CLOSED,
+        ENDLIFT_START,
+        ENDLIFT,
+        MANUAL_FLYWHEEL,
+        MANUAL_TURRET_PITCH,
+        MANUAL_GATE
 
     }
 
@@ -93,6 +99,7 @@ public class NatsTeleopBlue extends OpMode {
     PathState intakePathState;
     PathState turretPitchState;
     PathState gatePathstate;
+    PathState manualPathState;
 
 
 
@@ -122,25 +129,7 @@ public class NatsTeleopBlue extends OpMode {
 
 
 
-    public double getTargetHeading(){
-        double changeY = 138 - follower.getPose().getY();      // TODO for red
-        double changeX = follower.getPose().getX();
 
-        return Math.PI + Math.atan(changeY/changeX);
-    }
-
-
-    public void setGateServoPosition(double direction){
-        gateServo.setPosition(direction);
-    }
-
-
-    public void setFlywheelMotorPower(double curTargetVelocity){
-        flywheelMotor1.setVelocity(curTargetVelocity);
-        flywheelMotor2.setVelocity(curTargetVelocity);
-
-//        curVelocity = flywheelMotor1.getVelocity();
-    }
 
 
 
@@ -216,7 +205,17 @@ public class NatsTeleopBlue extends OpMode {
                 follower.followPath(driveToBlueGatePos,true);
                 setDrivetrainPathState(PathState.STANDBY);
                 break;
-
+            case ENDLIFT_START:
+                follower.startTeleopDrive();
+                activatePTO();
+                endLiftTimer.resetTimer();
+                setDrivetrainPathState(PathState.ENDLIFT);
+                break;
+            case ENDLIFT:
+                if (endLiftTimer.getElapsedTimeSeconds() > 5){
+                    follower.setTeleOpDrive(gamepad2.left_stick_y,0,gamepad2.right_stick_x,false);
+                }
+                break;
             case STANDBY:
                 break;
 
@@ -302,13 +301,13 @@ public class NatsTeleopBlue extends OpMode {
 
 
         switch (gatePathstate){
-            case GATE_SHOOT:
+            case GATE_OPEN:
+                setGateServoPosition(0.8);
+                break;
 
-//                setGateServoPosition();
-
-            case GATE_CLOSED:                //TODO
-
-//                setGateServoPosition();
+            case GATE_CLOSED:
+                setGateServoPosition(0.6);
+                break;
         }
 
 
@@ -324,7 +323,6 @@ public class NatsTeleopBlue extends OpMode {
 
             case FLYWHEEL_MANUAL:
                 setFlywheelMotorPower(rpm);
-
                 break;
 
             case FLYWHEEL_OFF:
@@ -347,15 +345,6 @@ public class NatsTeleopBlue extends OpMode {
 
 
 
-
-
-
-
-
-
-
-
-
         switch (turretPitchState){
             case TURRET_PITCH_AUTO:
                 autoPitch();
@@ -365,6 +354,18 @@ public class NatsTeleopBlue extends OpMode {
             case TURRET_PITCH_MANUAL:
                 setTurretPitchServoPosition(Math.abs(pitch));
                 telemetry.addData("Manual Pitch:", turretPitchServo.getPosition());
+                break;
+        }
+        switch (manualPathState){
+            case MANUAL_FLYWHEEL:
+
+                break;
+
+            case MANUAL_TURRET_PITCH:
+
+                break;
+
+            case MANUAL_GATE:
                 break;
         }
     }
@@ -395,6 +396,9 @@ public class NatsTeleopBlue extends OpMode {
         if (gamepad1.rightStickButtonWasPressed()) {
             setDrivetrainPathState(PathState.GATE_POS);
         }
+        if (gamepad2.leftStickButtonWasReleased()){
+            setDrivetrainPathState(PathState.ENDLIFT_START);
+        }
 
     }
     public void setIntakeMode(){
@@ -406,19 +410,42 @@ public class NatsTeleopBlue extends OpMode {
             setIntakePathState(PathState.INTAKE_REVERSE);
         }
     }
+    public void setGateServoMode(){
+        if (gamepad2.crossWasReleased()){
+            setGatePathstate(PathState.GATE_OPEN);
+        }if (gamepad2.circleWasReleased()){
+            setGatePathstate(PathState.GATE_CLOSED);
+        }
+    }
 
-//    public void setIntakeServoPower(double power){
-//        intakeServo.setPower(power);
-//        intakeServo2.setPower(power);
-//        intakeServo3.setPower(power);
-//
-//    }
     public void autoPitch(){
         setTurretPitchServoPosition(0.00000159852*Math.pow(getDistance(),3)-0.000458069*Math.pow(getDistance(),2)+0.0318736*getDistance()+0.122825);
     }public void setTurretPitchServoPosition(double position){
         turretPitchServo.setPosition(position);
     }public double getDistance(){
         return follower.getPose().distanceFrom(new Pose(6,144)) + 3.5;
+    }
+    public void activatePTO(){
+        leftPTOServo.setPosition(1.0);
+        rightPTOServo.setPosition(1.0);
+    }
+    public double getTargetHeading(){
+        double changeY = 138 - follower.getPose().getY();      // TODO for red
+        double changeX = follower.getPose().getX();
+
+        return Math.PI + Math.atan(changeY/changeX);
+    }
+
+    public void setGateServoPosition(double direction){
+        gateServo.setPosition(direction);
+    }
+
+
+    public void setFlywheelMotorPower(double curTargetVelocity){
+        flywheelMotor1.setVelocity(curTargetVelocity);
+        flywheelMotor2.setVelocity(curTargetVelocity);
+
+//        curVelocity = flywheelMotor1.getVelocity();
     }
 
 
@@ -435,7 +462,8 @@ public class NatsTeleopBlue extends OpMode {
 
 
 
-    //Set path states here
+
+        //Create set path state methods here
     public void setDrivetrainPathState(PathState newState){
         drivetrainPathState = newState;
         pathTimer.resetTimer();
@@ -467,6 +495,8 @@ public class NatsTeleopBlue extends OpMode {
         crawlModePathState = PathState.NORMAL_MODE;
         intakePathState = PathState.INTAKE_STATIONARY;
         turretPitchState = PathState.TURRET_PITCH_AUTO;
+        gatePathstate = PathState.GATE_CLOSED;
+        flywheelPathstate = PathState.FLYWHEEL_OFF;
 
 
         //Add init mechanisms here
@@ -501,6 +531,7 @@ public class NatsTeleopBlue extends OpMode {
 
 
         pathTimer = new Timer();
+        endLiftTimer = new Timer();
         double[] data = TextFile.loadAll();
 
 //        if (data != null && data.length >= 8) {
@@ -533,6 +564,8 @@ public class NatsTeleopBlue extends OpMode {
         setCrawlModePathState(crawlModePathState);
         setIntakePathState(intakePathState);
         setTurretPitchPathState(turretPitchState);
+        setGatePathstate(gatePathstate);
+        setFlywheelPathState(flywheelPathstate);
 
     }
 
@@ -552,6 +585,7 @@ public class NatsTeleopBlue extends OpMode {
         statePathUpdate();
         setIntakeMode();
         setDriveMode();
+        setGateServoMode();
 
     }
 
