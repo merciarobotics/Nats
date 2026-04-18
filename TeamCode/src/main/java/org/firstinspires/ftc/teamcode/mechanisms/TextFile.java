@@ -12,18 +12,13 @@ public class TextFile {
             AppUtil.getInstance().getSettingsFile("file.txt");
 
     // Save all values by passing them in
-    public static void saveAll(int pos1, int pos3, int pos5,
-                               double posX, double posY, double bearing,
-                               int currentGreenPos,int motifGreenPos) {
+    public static void saveAll(double posX, double posY, double bearing) {
 
-        String data = pos1 + "," +
-                pos3 + "," +
-                pos5 + "," +
+        String data =
                 posX + "," +
                 posY + "," +
-                bearing + "," +
-                currentGreenPos +"," +
-                motifGreenPos;
+                bearing + ",";
+
 
         ReadWriteFile.writeFile(file, data);
     }
@@ -34,13 +29,13 @@ public class TextFile {
 
         String[] parts = ReadWriteFile.readFile(file).trim().split(",");
 
-        if(parts.length < 8){
-            return new double[]{0,0,0,0,0,0,0,0};
+        if(parts.length < 3){
+            return new double[]{0,0,0};
 
         }
 
-        double[] values = new double[8];
-        for (int i = 0; i < 8; i++) {
+        double[] values = new double[3];
+        for (int i = 0; i < 3; i++) {
             values[i] = Double.parseDouble(parts[i]);
         }
         return values;

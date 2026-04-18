@@ -118,8 +118,7 @@ public class FarBlueInitAuto extends OpMode {
         statePathUpdate();
         follower.update();
 
-        text.saveAll(0,0,0,
-        follower.getPose().getX(),  follower.getPose().getY(),  follower.getPose().getHeading(), 1,0);
+        text.saveAll( follower.getPose().getX(),  follower.getPose().getY(),  follower.getPose().getHeading());
 
     }
 }

@@ -8,10 +8,13 @@ import com.pedropathing.util.Timer;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -29,7 +32,16 @@ public class FarBlueAuto extends OpMode {
     NormalizedColorSensor colorSensor;
     private float gain = 9;
     boolean tagDetected = false;
+    int rpm = 1150;
+
+
+
+
+
     public DcMotorEx intakeMotor;
+    public DcMotorEx flywheelMotor1;
+    public DcMotorEx flywheelMotor2;
+
 
 
 
@@ -57,19 +69,26 @@ public class FarBlueAuto extends OpMode {
         INTAKE_REVERSE,
         INTAKE,
         UPTAKE,
-        STANDBY
+        STANDBY,
+        GATE_SHOOT,
+        GATE_CLOSED,
+        FLYWHEEL_AUTO,
+        FLYWHEEL_OFF,
+        FLYWHEEL_MANUAL
 
     }
 
     PathState autoPathState;
     PathState intakePathState;
-    PathState intakeUptakePathState;
+
+    PathState gatePathstate;
+    PathState flywheelPathstate;
 
     private final Pose startPose = new Pose(57,9,Math.toRadians(90));
     private final Pose farBlueLaunchPose = new Pose(57,9,Math.toRadians(110));
 
     private final Pose firstIntakePose1 = new Pose(48.30985915492958,36,Math.toRadians(180));
-    private final Pose firstIntakePose2 = new Pose(12.5774647887324,36,Math.toRadians(180));
+    private final Pose firstIntakePose2 = new Pose(12.5774647887324,36,Math.toRadians(180));       //TODO change these for the other autos
     private final Pose secondIntakePose1 = new Pose(48.30985915492958,60,Math.toRadians(180));
     private final Pose secondIntakePose2 = new Pose(12.5774647887324,60,Math.toRadians(180));
     TextFile text = new TextFile();
@@ -93,6 +112,13 @@ public class FarBlueAuto extends OpMode {
 
 
 
+
+    public void setFlywheelMotorPower(double curTargetVelocity){
+        flywheelMotor1.setVelocity(curTargetVelocity);
+        flywheelMotor2.setVelocity(curTargetVelocity);
+
+//        curVelocity = flywheelMotor1.getVelocity();
+    }
 
 
 
@@ -134,7 +160,7 @@ public class FarBlueAuto extends OpMode {
 
         secondIntake = follower.pathBuilder()
                 .addPath(new BezierLine(secondIntakePose1.getPose(),secondIntakePose2.getPose()))
-                .setLinearHeadingInterpolation(secondIntakePose1.getHeading(),secondIntakePose2.getHeading())
+                .setLinearHeadingInterpolation(secondIntakePose1.getHeading(),secondIntakePose2.getHeading())      //TODO change these for the other autos
                 .build();
 
         secondIntakeToFarLaunchPose = follower.pathBuilder()
@@ -180,7 +206,7 @@ public class FarBlueAuto extends OpMode {
             case SHOOT_TO_FIRST_INTAKE:
                 //Add shooting code here
                 if (pathTimer.getElapsedTimeSeconds() > 3.0){
-                    follower.followPath(farLaunchPoseToFirstIntake,true);
+                    follower.followPath(farLaunchPoseToFirstIntake,true);           //TODO change these for the other autos
                     setAutoPathState(PathState.FIRST_INTAKE);
                 }
                 break;
@@ -244,6 +270,51 @@ public class FarBlueAuto extends OpMode {
 
 
 
+        switch (gatePathstate){
+            case GATE_SHOOT:
+
+//                setGateServoPosition();
+
+            case GATE_CLOSED:                //TODO
+
+//                setGateServoPosition();
+        }
+
+
+
+
+
+
+
+
+
+
+        switch (flywheelPathstate){
+
+
+            case FLYWHEEL_MANUAL:
+                setFlywheelMotorPower(rpm);
+
+                break;
+
+            case FLYWHEEL_OFF:
+                setFlywheelMotorPower(0.0);
+                break;
+
+
+            case FLYWHEEL_AUTO:
+//                autoVelocity();  // TODO
+                break;
+
+            default:
+                setFlywheelPathState(PathState.FLYWHEEL_OFF);
+                break;
+
+
+
+
+        }
+
 
 
         switch (intakePathState){
@@ -275,29 +346,28 @@ public class FarBlueAuto extends OpMode {
 
 
 
-        switch (intakeUptakePathState){
-            case INTAKE:
-                setIntakePathState(PathState.INTAKE_FORWARD);
-                break;
-
-            case UPTAKE:
-
-
-                break;
-
-
-            case STANDBY:
-                setIntakePathState(PathState.INTAKE_STATIONARY);
-                break;
-        }
     }
+
+
+
+
 
     public void setAutoPathState(PathState newState){
         autoPathState = newState;
         pathTimer.resetTimer();
     }public void setIntakePathState(PathState newState) {
         intakePathState = newState;
+    }public void setFlywheelPathState(PathState newState) {
+        flywheelPathstate = newState;
+    }public void setGatePathstate(PathState newState) {
+        gatePathstate = newState;
     }
+
+
+
+
+
+
 
     @Override
     public void init() {
@@ -307,8 +377,19 @@ public class FarBlueAuto extends OpMode {
         autoPathState = PathState.START_TO_SHOOT;
 
 
+        flywheelMotor1 = hardwareMap.get(DcMotorEx.class, "flywheelMotor1");
+        flywheelMotor1.setDirection(DcMotorSimple.Direction.REVERSE);
+        flywheelMotor1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
+        flywheelMotor2 = hardwareMap.get(DcMotorEx.class, "flywheelMotor2");
+        flywheelMotor2.setDirection(DcMotorSimple.Direction.FORWARD);
+        flywheelMotor2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
+        PIDFCoefficients pidfCoefficients = new PIDFCoefficients(32,0,0,0.92);
+        flywheelMotor1.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER,pidfCoefficients);
+        flywheelMotor2.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER,pidfCoefficients);
+
+        intakeMotor = hardwareMap.get(DcMotorEx.class, "intakeMotor");
 
 
 
@@ -345,8 +426,7 @@ public class FarBlueAuto extends OpMode {
         telemetry.addData("Auto PathState",autoPathState);
         telemetry.addData("Color Detected",detectedColor);
 
-        text.saveAll(0,0,0,
-        follower.getPose().getX(),  follower.getPose().getY(),  follower.getPose().getHeading(), 1,0);
+        text.saveAll( follower.getPose().getX(),  follower.getPose().getY(),  follower.getPose().getHeading());
 
     }
 }
